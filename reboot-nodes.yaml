@@ -1,0 +1,9 @@
+---
+
+- name: "Reboot Raspberry PIs"
+  hosts: pi_cluster
+  become: yes
+
+  tasks:
+    - name: reboot {{ansible_hostname}}
+      shell: shutdown -r +1

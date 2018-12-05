@@ -1,0 +1,79 @@
+---
+- name: "Install Golang"
+  hosts: pi_cluster
+  become: yes
+  serial: 1
+  
+  tasks:
+
+    - name: remove previous golangs version
+      apt:
+        name: golang
+        state: absent
+        update_cache: true
+
+    - name: get golang 1.8 files
+      get_url:
+        url: https://storage.googleapis.com/golang/go1.8.linux-armv6l.tar.gz
+        dest: /home/pi/
+
+    - name: unarchive golang tarball
+      command: tar -C /usr/local -xzf /home/pi/go1.8.linux-armv6l.tar.gz
+                
+    - name: export PATH
+      shell: export PATH=~/go
+
+    - name: install golang 1.8
+      apt:
+        name: golang
+        update_cache: true
+
+    - name: install virtualenv
+      pip:
+        name: virtualenv
+
+- name: "Increase SWAP size"
+  hosts: pi_cluster
+  become: yes
+  serial: 1
+
+  tasks:
+
+    - name: set golang path variable
+      shell: export GOPATH=/usr/local/go/bin
+
+    - name: edit config file
+      lineinfile:
+              dest: /etc/dphys-swapfile
+              regexp: '^(.*)CONF_SWAPSIZE=100(.*)$'
+              line: 'CONF_SWAPSIZE=1024'
+              backrefs: yes
+
+    - name: reload config
+      shell: dphys-swapfile setup && dphys-swapfile swapon
+
+- name: "Install Metricbeat"
+  hosts: pi_cluster
+  become: yes
+  serial: 1
+  
+  tasks:
+
+    - name: get sources
+      shell: /usr/local/go/bin/go get github.com/elastic/beats
+      ignore_errors: yes
+
+    - name: checkout version branch
+      shell: git checkout 6.0
+      args:
+        chdir: ~/go/src/github.com/elastic/beats/metricbeat
+
+    - name: build metricbeat from source
+      shell: GOPATH=~/go make
+      args:
+        chdir: ~/go/src/github.com/elastic/beats/metricbeat/
+
+    - name: test metricbeat
+      shell: ./metricbeat -e
+      args:
+        chdir: ~/go/src/github.com/elastic/beats/metricbeat/
