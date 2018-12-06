@@ -1,0 +1,45 @@
+---
+
+- name: "Start EPNs"
+  hosts: epn_nodes
+
+  tasks:
+
+    - name: "start epn nodes"
+      shell: "./epn/epn --severity trace --verbosity high --id 1 --num-flp 3 --channel-config name=1,type=pull,method=bind,address=tcp://*:5555,rateLogging=1 name=feedback,type=push,method=connect,address=tcp://192.168.1.4:5000 &"
+      async: 60
+      poll: 0
+      args:
+        chdir: /home/pi/O2-Balancer2/build
+      register: epn_node
+    
+    - debug:
+        var: epn_node.stdout_lines
+
+- name: "Start FLPs"
+  hosts: flp_nodes
+
+  tasks:
+    
+    - name: "start flp nodes"
+      shell: "./flp/flp --severity trace --verbosity high --id 1 --bytes-per-message {{msg_size}} --channel-config name=broadcast,type=sub,method=connect,rateLogging=1,address=tcp://{{ansible_host}}:5005 &"
+      async: 60
+      poll: 0
+      args:
+        chdir: /home/pi/O2-Balancer2/build
+      register: flp_node
+
+    - debug:
+         var: flp_node.stdout_lines
+
+- name: "Start ICN"
+  hosts: controller_node
+ 
+  tasks:
+        
+    - name: "start icn {{inventory_hostname}}"
+      shell: "./icn/icn --severity trace --verbosity high --id 1 --iterations 6000 --rate 200 --channel-config name=broadcast,type=pub,method=bind,rateLogging=0,address=tcp://*:5005 name=feedback,type=pull,method=bind,rateLogging=0,address=tcp://*:5000 &"
+      async: 60
+      poll: 0
+      args:
+        chdir: /home/pi/O2-Balancer2/build

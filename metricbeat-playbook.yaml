@@ -1,8 +1,7 @@
 ---
 - name: "Install Golang"
-  hosts: pi_cluster
+  hosts: all
   become: yes
-  serial: 1
   
   tasks:
 
@@ -33,9 +32,8 @@
         name: virtualenv
 
 - name: "Increase SWAP size"
-  hosts: pi_cluster
+  hosts: all
   become: yes
-  serial: 1
 
   tasks:
 
@@ -53,9 +51,8 @@
       shell: dphys-swapfile setup && dphys-swapfile swapon
 
 - name: "Install Metricbeat"
-  hosts: pi_cluster
+  hosts: all
   become: yes
-  serial: 1
   
   tasks:
 
