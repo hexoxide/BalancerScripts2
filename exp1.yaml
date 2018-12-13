@@ -31,7 +31,7 @@
   tasks:
         
     - name: "start icn {{inventory_hostname}}"
-      shell: "./icn/icn --severity trace --verbosity high --id 1 --rate 50 --channel-config name=broadcast,type=pub,method=bind,rateLogging=0,address=tcp://*:5005 name=feedback,type=pull,method=bind,rateLogging=0,address=tcp://*:5000 &"
+      shell: "./icn/icn --control static --severity trace --verbosity high --id 1 --rate 50 --channel-config name=broadcast,type=pub,method=bind,rateLogging=0,address=tcp://*:5005 name=feedback,type=pull,method=bind,rateLogging=0,address=tcp://*:5000 &"
       async: 60
       poll: 5
       args:
